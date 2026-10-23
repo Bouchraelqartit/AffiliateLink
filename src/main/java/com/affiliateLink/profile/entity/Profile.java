@@ -31,7 +31,9 @@ public abstract class Profile {
 
     protected Profile() {
     }
-    public Long getId() {
+    protected Profile(String email) {
+        this.email = email;
+    }    public Long getId() {
         return id;
     }
 
