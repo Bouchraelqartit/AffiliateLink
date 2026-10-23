@@ -9,7 +9,8 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 @Entity
 @Table(name = "profile_profiles")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -21,7 +22,7 @@ public abstract class Profile {
 
     @Column(nullable = false, unique = true)
     private String email;
-
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProfileStatus status = ProfileStatus.PENDING;
 
