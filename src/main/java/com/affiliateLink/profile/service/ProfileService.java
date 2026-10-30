@@ -9,6 +9,7 @@ import com.affiliateLink.profile.entity.Profile;
 import com.affiliateLink.profile.entity.Publisher;
 import com.affiliateLink.profile.repository.ProfileRepository;
 import org.springframework.stereotype.Service;
+import com.affiliateLink.common.EmailAlreadyExistsException;
 
 import java.util.List;
 import java.util.Optional;
