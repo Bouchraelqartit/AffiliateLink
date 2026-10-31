@@ -1,16 +1,10 @@
+
 package com.affiliateLink.profile.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import com.affiliateLink.common.InvalidStatusTransitionException;
+
 @Entity
 @Table(name = "profile_profiles")
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -22,6 +16,7 @@ public abstract class Profile {
 
     @Column(nullable = false, unique = true)
     private String email;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProfileStatus status = ProfileStatus.PENDING;
@@ -31,9 +26,12 @@ public abstract class Profile {
 
     protected Profile() {
     }
+
     protected Profile(String email) {
         this.email = email;
-    }    public Long getId() {
+    }
+
+    public Long getId() {
         return id;
     }
 
@@ -47,5 +45,22 @@ public abstract class Profile {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
-    }}
+    }
 
+    public void changeStatus(ProfileStatus newStatus) {
+
+        boolean validTransition = switch (this.status) {
+            case PENDING -> newStatus == ProfileStatus.ACTIVE;
+            case ACTIVE -> newStatus == ProfileStatus.SUSPENDED;
+            case SUSPENDED -> newStatus == ProfileStatus.ACTIVE;
+        };
+
+        if (!validTransition) {
+            throw new InvalidStatusTransitionException(
+                    "Cannot change status from " + this.status + " to " + newStatus
+            );
+        }
+
+        this.status = newStatus;
+    }
+}

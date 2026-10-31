@@ -8,8 +8,12 @@ import com.affiliateLink.profile.entity.Advertiser;
 import com.affiliateLink.profile.entity.Profile;
 import com.affiliateLink.profile.entity.Publisher;
 import com.affiliateLink.profile.repository.ProfileRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import com.affiliateLink.common.EmailAlreadyExistsException;
+import com.affiliateLink.profile.entity.Profile;
+import com.affiliateLink.profile.entity.ProfileStatus;
+import com.affiliateLink.common.InvalidStatusTransitionException;
 
 import java.util.List;
 import java.util.Optional;
@@ -103,5 +107,20 @@ public class ProfileService {
                 advertiser.getSector(),
                 advertiser.getWebsite()
         );
+    }
+
+    @Transactional
+    public void updateProfileStatus(Long id, ProfileStatus newStatus) {
+
+        Profile profile = profileRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Profile not found with id: " + id
+                ));
+
+        try {
+            profile.changeStatus(newStatus);
+        } catch (IllegalStateException exception) {
+            throw new InvalidStatusTransitionException(exception.getMessage());
+        }
     }
 }
