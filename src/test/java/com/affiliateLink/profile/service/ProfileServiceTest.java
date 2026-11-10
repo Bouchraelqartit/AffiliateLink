@@ -15,6 +15,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import com.affiliateLink.profile.dto.AdvertiserRequest;
 import com.affiliateLink.profile.dto.AdvertiserResponse;
 import com.affiliateLink.profile.entity.Advertiser;
+import com.affiliateLink.common.EmailAlreadyExistsException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -80,5 +83,43 @@ class ProfileServiceTest {
         assertThat(response.website()).isEqualTo(request.website());
         verify(profileRepository).existsByEmail(request.email());
         verify(profileRepository).save(any(Advertiser.class));
+    }
+
+    @Test
+    void shouldRejectPublisherCreationWhenEmailAlreadyExists() {
+        PublisherRequest request = new PublisherRequest(
+                "existing@test.com",
+                "Sarra",
+                "Test",
+                Niche.TECH,
+                "Content creator",
+                "Morocco"
+        );
+        when(profileRepository.existsByEmail(request.email())).thenReturn(true);
+
+
+        assertThatThrownBy(() -> profileService.createPublisher(request))
+                .isInstanceOf(EmailAlreadyExistsException.class)
+                .hasMessage("Email already exists: " + request.email());
+        verify(profileRepository).existsByEmail(request.email());
+        verify(profileRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldRejectAdvertiserCreationWhenEmailAlreadyExists() {
+        AdvertiserRequest request = new AdvertiserRequest(
+                "existing@test.com",
+                "Tech Company",
+                "Technology",
+                "https://example.com"
+        );
+        when(profileRepository.existsByEmail(request.email())).thenReturn(true);
+
+
+        assertThatThrownBy(() -> profileService.createAdvertiser(request))
+                .isInstanceOf(EmailAlreadyExistsException.class)
+                .hasMessage("Email already exists: " + request.email());
+        verify(profileRepository).existsByEmail(request.email());
+        verify(profileRepository, never()).save(any());
     }
 }
