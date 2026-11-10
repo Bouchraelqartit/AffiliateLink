@@ -39,4 +39,52 @@ public class ProfileTest {
         assertThat(advertiser.getCreatedAt()).isNotNull();
     }
 
+    @Test
+    void shouldActivatePendingProfile(){
+        Profile profile = new Advertiser(
+                "advertiser@test.com",
+                "tech company",
+                "technology",
+                "https://example.com"
+
+        );
+
+        profile.changeStatus(ProfileStatus.ACTIVE);
+
+        assertThat(profile.getStatus()).isEqualTo(ProfileStatus.ACTIVE);
+
+    }
+
+    @Test
+    void shouldSuspendActiveProfile(){
+        Profile profile = new Advertiser(
+                "advertiser@test.com",
+                "tech company",
+                "technology",
+                "https://example.com"
+        );
+        profile.changeStatus(ProfileStatus.ACTIVE);
+
+        profile.changeStatus(ProfileStatus.SUSPENDED);
+
+        assertThat(profile.getStatus()).isEqualTo(ProfileStatus.SUSPENDED);
+
+    }
+
+    @Test
+    void shouldReactivateSuspendedProfile(){
+        Profile profile = new Advertiser(
+                "advertiser@test.com",
+                "tech company",
+                "technology",
+                "https://example.com"
+        );
+        profile.changeStatus(ProfileStatus.ACTIVE);
+        profile.changeStatus(ProfileStatus.SUSPENDED);
+
+        profile.changeStatus(ProfileStatus.ACTIVE);
+
+        assertThat(profile.getStatus()).isEqualTo(ProfileStatus.ACTIVE);
+    }
+
 }
