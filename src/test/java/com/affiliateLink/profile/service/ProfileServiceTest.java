@@ -16,6 +16,11 @@ import com.affiliateLink.profile.dto.AdvertiserRequest;
 import com.affiliateLink.profile.dto.AdvertiserResponse;
 import com.affiliateLink.profile.entity.Advertiser;
 import com.affiliateLink.common.EmailAlreadyExistsException;
+import com.affiliateLink.common.ResourceNotFoundException;
+import com.affiliateLink.common.InvalidStatusTransitionException;
+import com.affiliateLink.profile.entity.Profile;
+import java.util.Optional;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -121,5 +126,58 @@ class ProfileServiceTest {
                 .hasMessage("Email already exists: " + request.email());
         verify(profileRepository).existsByEmail(request.email());
         verify(profileRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenProfileDoesNotExist() {
+        Long profileId = 999L;
+        when(profileRepository.findById(profileId)).thenReturn(Optional.empty());
+
+
+        assertThatThrownBy(() -> profileService.updateProfileStatus(profileId, ProfileStatus.ACTIVE))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Profile not found with id: " + profileId);
+        verify(profileRepository).findById(profileId);
+        verify(profileRepository, never()).save(any());
+        verifyNoInteractions(eventPublisher);
+    }
+
+    @Test
+    void shouldActivateExistingProfile() {
+        Long profileId = 1L;
+        Profile profile = new Advertiser(
+                "advertiser@test.com",
+                "Tech Company",
+                "Technology",
+                "https://example.com"
+        );
+        when(profileRepository.findById(profileId)).thenReturn(Optional.of(profile));
+
+
+        profileService.updateProfileStatus(profileId, ProfileStatus.ACTIVE);
+
+
+        assertThat(profile.getStatus()).isEqualTo(ProfileStatus.ACTIVE);
+        verify(profileRepository).findById(profileId);
+    }
+
+    @Test
+    void shouldRejectInvalidStatusTransition() {
+        Long profileId = 1L;
+        Profile profile = new Advertiser(
+                "advertiser@test.com",
+                "Tech Company",
+                "Technology",
+                "https://example.com"
+        );
+        when(profileRepository.findById(profileId)).thenReturn(Optional.of(profile));
+
+
+        assertThatThrownBy(() -> profileService.updateProfileStatus(profileId, ProfileStatus.SUSPENDED))
+                .isInstanceOf(InvalidStatusTransitionException.class)
+                .hasMessage("Cannot change status from PENDING to SUSPENDED");
+        assertThat(profile.getStatus()).isEqualTo(ProfileStatus.PENDING);
+        verify(profileRepository).findById(profileId);
+        verifyNoInteractions(eventPublisher);
     }
 }
