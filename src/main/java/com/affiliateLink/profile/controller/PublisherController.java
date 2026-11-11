@@ -1,5 +1,6 @@
 package com.affiliateLink.profile.controller;
 
+import com.affiliateLink.common.ResourceNotFoundException;
 import com.affiliateLink.profile.dto.PublisherRequest;
 import com.affiliateLink.profile.dto.PublisherResponse;
 import com.affiliateLink.profile.service.ProfileService;
@@ -7,7 +8,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -39,8 +39,11 @@ public class PublisherController {
     public ResponseEntity<PublisherResponse> getPublisherById(
             @PathVariable Long id) {
 
-        return profileService.getPublisherById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        PublisherResponse response = profileService.getPublisherById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Publisher not found with id: " + id
+                ));
+
+        return ResponseEntity.ok(response);
     }
 }
