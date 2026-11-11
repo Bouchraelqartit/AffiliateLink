@@ -1,5 +1,6 @@
 package com.affiliateLink.profile.controller;
 
+import com.affiliateLink.common.ResourceNotFoundException;
 import com.affiliateLink.profile.dto.AdvertiserRequest;
 import com.affiliateLink.profile.dto.AdvertiserResponse;
 import com.affiliateLink.profile.service.ProfileService;
@@ -7,7 +8,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -39,8 +39,11 @@ public class AdvertiserController {
     public ResponseEntity<AdvertiserResponse> getAdvertiserById(
             @PathVariable Long id) {
 
-        return profileService.getAdvertiserById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        AdvertiserResponse response = profileService.getAdvertiserById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Advertiser not found with id: " + id
+                ));
+
+        return ResponseEntity.ok(response);
     }
 }
